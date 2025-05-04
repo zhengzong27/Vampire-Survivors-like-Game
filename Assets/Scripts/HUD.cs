@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class HUD : MonoBehaviour
 {
     public enum InfoType {Exp,Level,Kill,Time,Health }
@@ -23,12 +24,24 @@ public class HUD : MonoBehaviour
                 mySlider.value = curExp / maxExp;
                 break;
             case InfoType.Level:
+                myText.text = string.Format("Lv.{0:F0}", GameManager.instance.level);
                 break;
             case InfoType.Kill:
+                myText.text = string.Format("{0:F0}", GameManager.instance.kill);
                 break;
             case InfoType.Time:
+                Debug.Log("找到！Time!");
+                float remainTime = GameManager.instance.maxGameTime - GameManager.instance.gameTime;
+                Debug.Log($"HUD Time - gameTime: {GameManager.instance.gameTime:F2}, maxGameTime: {GameManager.instance.maxGameTime}, remainTime: {remainTime:F2}");
+                int min = Mathf.FloorToInt(remainTime / 60);
+                int sec = Mathf.FloorToInt(remainTime % 60);
+                myText.text = string.Format("{0:D2}:{1:D2}", min, sec);
+                Debug.Log($"显示时间: {myText.text}");
                 break;
             case InfoType.Health:
+                float curHealth = GameManager.instance.health;
+                float maxHealth = GameManager.instance.maxHealth;
+                mySlider.value = curHealth / maxHealth;
                 break;
 
         }

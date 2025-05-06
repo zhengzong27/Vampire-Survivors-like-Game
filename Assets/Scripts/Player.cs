@@ -79,18 +79,9 @@ public class Player : MonoBehaviour
         for(int index=2;index<transform.childCount;index++)
         {
             transform.GetChild(index).gameObject.SetActive(false);
-        }
-        
-        // 确保动画器存在
-        if(anim != null)
-        {
+        }  
             anim.SetTrigger("Dead");
-        }
-        else
-        {
-            Debug.LogError("Player: Animator component is missing!");
-        }
-
+            GameManager.instance.GameOver();
         // 停止移动
         inputVec = Vector2.zero;
         if(rigid != null)

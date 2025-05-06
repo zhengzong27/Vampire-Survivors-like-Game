@@ -92,7 +92,7 @@ public class Enemy : MonoBehaviour
         rigid.AddForce(dirvec.normalized*3,ForceMode2D.Impulse);
 
     }
-    void Dead()
+    public void Dead()
     {
         gameObject.SetActive(false);
     }

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public bool isLive;
     public float gameTime;
     public float maxGameTime = 2 * 10f;
+    public int winCount = 0;
     [Header("# Player Info")]
     public float health;
     public float maxHealth=100;
@@ -21,12 +22,11 @@ public class GameManager : MonoBehaviour
     public Player player;
     public Levelup uilevelup;
     public bool isInitialized { get; private set; } = false;
-
+    public Result uiResult;
+    public GameObject enemyCleaner;
     void Awake()
     {
-
-            instance = this;
-
+        instance = this;
     }
 
     public void GameStart()
@@ -36,8 +36,54 @@ public class GameManager : MonoBehaviour
         health=maxHealth;
         isLive=true;
         uilevelup.Select(0);
+        Resume();
     }
-
+    public void GameOver()
+    {
+        StartCoroutine(GameOverCoroutine());
+    }
+    IEnumerator GameOverCoroutine()
+    {
+        isLive=false;
+        yield return new WaitForSeconds(0.5f);
+        uiResult.gameObject.SetActive(true);
+        uiResult.Lose();
+        Stop();
+    }
+    public void GameWin()
+    {
+        StartCoroutine(GameWinCoroutine());
+    }
+    IEnumerator GameWinCoroutine()
+    {
+        isLive=false;
+        CleanAllEnemies();
+        enemyCleaner.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        uiResult.gameObject.SetActive(true);
+        uiResult.Win();
+        Stop();
+    }
+    public void Retry()
+    {
+        if (winCount < 5)
+        {
+            winCount++;
+            gameTime = 0;
+            isLive = true;
+            uiResult.gameObject.SetActive(false);
+            enemyCleaner.SetActive(false);
+            Resume();
+        }
+        else
+        {
+            #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+            #else
+                Application.Quit();
+            #endif
+        }
+    }
     IEnumerator InitializeCoroutine()
     {
         // 等待一帧，确保 PoolManager 已经初始化
@@ -93,12 +139,15 @@ public class GameManager : MonoBehaviour
         if (gameTime > maxGameTime)
         {
             gameTime = maxGameTime;
+            GameWin();
         }
-        Debug.Log($"GameManager Update - gameTime: {gameTime:F2}, maxGameTime: {maxGameTime}, 剩余时间: {maxGameTime - gameTime:F2}");
+        
     }
 
     public void GetExp() 
     {
+        if(!isLive)
+            return;
         if (!isInitialized)
             return;
 
@@ -119,6 +168,18 @@ public class GameManager : MonoBehaviour
     {
         isLive=true;
         Time.timeScale=1;
+    }
+
+    public void CleanAllEnemies()
+    {
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        foreach (Enemy enemy in enemies)
+        {
+            if (enemy != null && enemy.gameObject.activeInHierarchy)
+            {
+                enemy.Dead();
+            }
+        }
     }
 }
  

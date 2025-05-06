@@ -8,33 +8,94 @@ public class Player : MonoBehaviour
     public Vector2 inputVec;
     public float speed;
     public Scanner scanner;
+    public Hand[] hands;
     Rigidbody2D rigid;
     SpriteRenderer spriter;
     Animator anim;
-    // Start is called before the first frame update
+    bool isDead = false;
+
     void Awake()
     {
         rigid = GetComponent<Rigidbody2D>();
         spriter = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
         scanner = GetComponent<Scanner>();
+        hands = GetComponentsInChildren<Hand>(true);
     }
 
-private void FixedUpdate()
+    void Update()
     {
+        if(!GameManager.instance.isLive || isDead)
+            return;
+        inputVec.x=Input.GetAxisRaw("Horizontal");
+        inputVec.y=Input.GetAxisRaw("Vertical");
+    }
+
+    private void FixedUpdate()
+    {
+        if(!GameManager.instance.isLive || isDead)
+            return;
         Vector2 nextVec = inputVec.normalized * speed * Time.fixedDeltaTime;
         rigid.MovePosition(rigid.position + nextVec);
     }
+
     private void OnMove(InputValue value)
     {
+        if(!GameManager.instance.isLive || isDead)
+            return;
         inputVec = value.Get<Vector2>();
     }
+
     private void LateUpdate()
     {
-        anim.SetFloat("speed",inputVec.magnitude);
-        if(inputVec.x !=0) {
+        if(!GameManager.instance.isLive || isDead)
+            return;
+        anim.SetFloat("speed", inputVec.magnitude);
+        if (inputVec.x != 0)
+        {
             spriter.flipX = inputVec.x < 0;
+        }
+    }
 
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if(!GameManager.instance.isLive || isDead)
+            return;
+
+        if(!collision.gameObject.CompareTag("Enemy"))
+            return;
+
+        GameManager.instance.health-=Time.deltaTime*10;
+        if(GameManager.instance.health<0 && !isDead)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        isDead = true;
+        // 禁用所有子对象的武器
+        for(int index=2;index<transform.childCount;index++)
+        {
+            transform.GetChild(index).gameObject.SetActive(false);
+        }
+        
+        // 确保动画器存在
+        if(anim != null)
+        {
+            anim.SetTrigger("Dead");
+        }
+        else
+        {
+            Debug.LogError("Player: Animator component is missing!");
+        }
+
+        // 停止移动
+        inputVec = Vector2.zero;
+        if(rigid != null)
+        {
+            rigid.velocity = Vector2.zero;
         }
     }
 }

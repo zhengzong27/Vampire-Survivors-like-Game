@@ -15,15 +15,17 @@ MonoBehaviour:
   itemType: 0
   itemId: 0
   itemName: "\u94F2\u5B50"
-  itemDesc: 
+  itemDesc: "\u4F24\u5BB3\u589E\u52A0{0}%\n\u6570\u91CF\u589E\u52A0(1)"
   itemIcon: {fileID: -181907988, guid: d71a3dc7aa20fad4f9a99fc76a9254ba, type: 3}
   baseDamage: 4.5
-  baseCount: 3
+  baseCount: 1
   damages:
   - 0.5
   - 1
   - 1.5
   - 2
   - 3
-  counts: 0100000001000000010000000100000002000000
+  - 3
+  counts: 010000000100000002000000030000000400000005000000
   projectile: {fileID: 1203938118354684507, guid: 7925f541b8f7e514297014c39085d462, type: 3}
+  hand: {fileID: 143021600, guid: 0d5e657ee5a074e4baa53d5b248a01d2, type: 3}

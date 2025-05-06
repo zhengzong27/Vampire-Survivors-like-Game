@@ -15,15 +15,16 @@ MonoBehaviour:
   itemType: 3
   itemId: 3
   itemName: "\u901F\u5EA6"
-  itemDesc: 
+  itemDesc: "\u79FB\u52A8\u901F\u5EA6\u589E\u52A0"
   itemIcon: {fileID: -966295699, guid: d71a3dc7aa20fad4f9a99fc76a9254ba, type: 3}
   baseDamage: 0
   baseCount: 0
   damages:
-  - 0.1
-  - 0.2
-  - 0.3
   - 0.4
-  - 0.5
+  - 0.8
+  - 1.2
+  - 1.6
+  - 2
   counts: 0000000000000000000000000000000000000000
   projectile: {fileID: 0}
+  hand: {fileID: 0}

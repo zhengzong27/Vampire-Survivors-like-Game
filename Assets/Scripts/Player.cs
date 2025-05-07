@@ -13,6 +13,9 @@ public class Player : MonoBehaviour
     SpriteRenderer spriter;
     Animator anim;
     bool isDead = false;
+    private float damageTimer = 0f;
+    private const float DAMAGE_INTERVAL = 0.5f; // 伤害间隔时间
+    private HashSet<GameObject> collidingEnemies = new HashSet<GameObject>();
 
     void Awake()
     {
@@ -29,6 +32,21 @@ public class Player : MonoBehaviour
             return;
         inputVec.x=Input.GetAxisRaw("Horizontal");
         inputVec.y=Input.GetAxisRaw("Vertical");
+
+        // 处理伤害计时
+        if (collidingEnemies.Count > 0)
+        {
+            damageTimer += Time.deltaTime;
+            if (damageTimer >= DAMAGE_INTERVAL)
+            {
+                damageTimer = 0f;
+                TakeDamage();
+            }
+        }
+        else
+        {
+            damageTimer = 0f;
+        }
     }
 
     private void FixedUpdate()
@@ -57,16 +75,35 @@ public class Player : MonoBehaviour
         }
     }
 
-    void OnCollisionStay2D(Collision2D collision)
+    void OnCollisionEnter2D(Collision2D collision)
     {
         if(!GameManager.instance.isLive || isDead)
             return;
 
-        if(!collision.gameObject.CompareTag("Enemy"))
+        if(collision.gameObject.CompareTag("Enemy"))
+        {
+            collidingEnemies.Add(collision.gameObject);
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if(!GameManager.instance.isLive || isDead)
             return;
 
-        GameManager.instance.health-=Time.deltaTime*10;
-        if(GameManager.instance.health<0 && !isDead)
+        if(collision.gameObject.CompareTag("Enemy"))
+        {
+            collidingEnemies.Remove(collision.gameObject);
+        }
+    }
+
+    private void TakeDamage()
+    {
+        if(!GameManager.instance.isLive || isDead)
+            return;
+
+        GameManager.instance.health -= 5f; // 每次造成5点伤害
+        if(GameManager.instance.health <= 0 && !isDead)
         {
             Die();
         }
@@ -75,13 +112,17 @@ public class Player : MonoBehaviour
     void Die()
     {
         isDead = true;
+        collidingEnemies.Clear();
+        
         // 禁用所有子对象的武器
-        for(int index=2;index<transform.childCount;index++)
+        for(int index=2; index<transform.childCount; index++)
         {
             transform.GetChild(index).gameObject.SetActive(false);
         }  
-            anim.SetTrigger("Dead");
-            GameManager.instance.GameOver();
+        
+        anim.SetTrigger("Dead");
+        GameManager.instance.GameOver();
+        
         // 停止移动
         inputVec = Vector2.zero;
         if(rigid != null)

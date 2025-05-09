@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     public bool isInitialized { get; private set; } = false;
     public Result uiResult;
     public GameObject enemyCleaner;
+    public bool isWin = false;  // 添加胜利标志
     void Awake()
     {
         instance = this;
@@ -40,6 +41,7 @@ public class GameManager : MonoBehaviour
     }
     public void GameOver()
     {
+        isWin = false;  // 设置失败标志
         StartCoroutine(GameOverCoroutine());
     }
     IEnumerator GameOverCoroutine()
@@ -52,6 +54,7 @@ public class GameManager : MonoBehaviour
     }
     public void GameWin()
     {
+        isWin = true;  // 设置胜利标志
         StartCoroutine(GameWinCoroutine());
     }
     IEnumerator GameWinCoroutine()
@@ -61,28 +64,32 @@ public class GameManager : MonoBehaviour
         enemyCleaner.SetActive(true);
         yield return new WaitForSeconds(0.5f);
         uiResult.gameObject.SetActive(true);
-        uiResult.Win();
-        Stop();
-    }
-    public void Retry()
-    {
         if (winCount < 5)
         {
-            winCount++;
-            gameTime = 0;
-            isLive = true;
-            uiResult.gameObject.SetActive(false);
-            enemyCleaner.SetActive(false);
-            Resume();
+            uiResult.ShowContinue();
         }
         else
         {
-            #if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-            #else
-                Application.Quit();
-            #endif
+            uiResult.ShowRetry();
         }
+        Stop();
+    }
+    public void Continue()
+    {
+        winCount++;
+        gameTime = 0;
+        isLive = true;
+        uiResult.gameObject.SetActive(false);
+        enemyCleaner.SetActive(false);
+        Resume();
+    }
+    public void Retry()
+    {
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
     IEnumerator InitializeCoroutine()
     {
@@ -130,18 +137,15 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (!isLive)
-            return; 
-        if (instance != this || !isInitialized)
+        if (!isLive || !isInitialized || instance != this)
             return;
             
         gameTime += Time.deltaTime;
-        if (gameTime > maxGameTime)
+        if (gameTime > maxGameTime && health > 0)
         {
             gameTime = maxGameTime;
             GameWin();
         }
-        
     }
 
     public void GetExp() 
